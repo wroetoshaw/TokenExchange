@@ -1,0 +1,114 @@
+version: '2'
+
+networks:
+  token:
+
+volumes:
+  data-orderer.simplyfi.com:
+  data-peer1.simplyfi.com:
+  data-peer1.budget.com:
+  data-peer1.hr.com:
+
+services:
+  orderer.simplyfi.com:
+    container_name: orderer.simplyfi.com
+    image: hyperledger/fabric-orderer:$IMAGE_TAG
+    command: orderer
+    environment:
+      - FABRIC_CFG_PATH=/var/hyperledger/config
+      - FABRIC_LOGGING_SPEC=ERROR
+    volumes:
+      - ${PWD}/config/orderer:/var/hyperledger/config
+      - ${PWD}/config/crypto-config/ordererOrganizations/simplyfi.com/orderers/orderer.simplyfi.com/msp:/var/hyperledger/msp
+      - ${PWD}/config/crypto-config/ordererOrganizations/simplyfi.com/orderers/orderer.simplyfi.com/tls:/var/hyperledger/tls
+      - /var/run/:/var/run/
+      - data-orderer.simplyfi.com:/var/hyperledger/production/orderer
+    ports:
+      - 7050:7050
+    networks:
+      - token
+
+  peer1.simplyfi.com:
+    container_name: peer1.simplyfi.com
+    image: hyperledger/fabric-peer:$IMAGE_TAG
+    environment:
+      - FABRIC_CFG_PATH=/var/hyperledger/config
+      - FABRIC_LOGGING_SPEC=WARNING
+      - CORE_VM_DOCKER_HOSTCONFIG_NETWORKMODE=${COMPOSE_PROJECT_NAME}_token
+    command: peer node start
+    volumes:
+      - ${PWD}/config/simplyfi:/var/hyperledger/config
+      - ${PWD}/config/crypto-config/peerOrganizations/simplyfi.com/peers/peer1.simplyfi.com/msp:/var/hyperledger/msp
+      - ${PWD}/config/crypto-config/peerOrganizations/simplyfi.com/peers/peer1.simplyfi.com/tls:/var/hyperledger/tls
+      - /var/run/:/var/run/
+      - data-peer1.simplyfi.com:/var/hyperledger/production/peer
+    depends_on: 
+      - orderer.simplyfi.com
+    ports:
+      - 7051:7051
+    networks:
+      - token
+
+  peer1.budget.com:
+    container_name: peer1.budget.com
+    image: hyperledger/fabric-peer:$IMAGE_TAG
+    environment:
+      - FABRIC_CFG_PATH=/var/hyperledger/config
+      - FABRIC_LOGGING_SPEC=WARNING
+      - CORE_VM_DOCKER_HOSTCONFIG_NETWORKMODE=${COMPOSE_PROJECT_NAME}_token
+    command: peer node start
+    volumes:
+      - ${PWD}/config/budget:/var/hyperledger/config
+      - ${PWD}/config/crypto-config/peerOrganizations/budget.com/peers/peer1.budget.com/msp:/var/hyperledger/msp
+      - ${PWD}/config/crypto-config/peerOrganizations/budget.com/peers/peer1.budget.com/tls:/var/hyperledger/tls
+      - /var/run/:/var/run/
+      - data-peer1.budget.com:/var/hyperledger/production/peer
+    depends_on: 
+      - orderer.simplyfi.com
+    ports:
+      - 8051:7051
+    networks:
+      - token
+
+  peer1.hr.com:
+    container_name: peer1.hr.com
+    image: hyperledger/fabric-peer:$IMAGE_TAG
+    environment:
+      - FABRIC_CFG_PATH=/var/hyperledger/config
+      - FABRIC_LOGGING_SPEC=WARNING
+      - CORE_VM_DOCKER_HOSTCONFIG_NETWORKMODE=${COMPOSE_PROJECT_NAME}_token
+    command: peer node start
+    volumes:
+      - ${PWD}/config/hr:/var/hyperledger/config
+      - ${PWD}/config/crypto-config/peerOrganizations/hr.com/peers/peer1.hr.com/msp:/var/hyperledger/msp
+      - ${PWD}/config/crypto-config/peerOrganizations/hr.com/peers/peer1.hr.com/tls:/var/hyperledger/tls
+      - /var/run/:/var/run/
+      - data-peer1.hr.com:/var/hyperledger/production/peer
+    depends_on: 
+      - orderer.simplyfi.com
+    ports:
+      - 9051:7051
+    networks:
+      - token
+
+  tools:
+    container_name: tools
+    command: /bin/bash
+    image: hyperledger/fabric-tools:$IMAGE_TAG
+    tty: true
+    stdin_open: true
+    environment:
+      - GOPATH=/opt/gopath
+      - FABRIC_CFG_PATH=/var/hyperledger/config
+      - FABRIC_LOGGING_SPEC=WARNING
+    working_dir: /opt/scripts
+    volumes:
+      - ${PWD}/../artefacts/nodechaincode:/opt/nodechaincode
+      - ${PWD}/../gopath:/opt/gopath
+      - ${PWD}/config:/var/hyperledger/config
+      - ${PWD}/config/crypto-config/peerOrganizations:/var/hyperledger/crypto
+      - /var/run/:/host/var/run/
+      - ${PWD}/tool-bins:/opt/scripts
+    networks:
+      - token
+

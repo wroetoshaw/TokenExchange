@@ -1,0 +1,44 @@
+# Defines four organizations
+#  - Orderer organization
+#  - Simplyfi
+#  - Budget
+#  - Hr
+
+OrdererOrgs:
+  - Name: Orderer
+    Domain: simplyfi.com
+    EnableNodeOUs: true
+    Specs:
+      - Hostname: orderer
+
+PeerOrgs:
+  # Peer configuration for Simplyfi
+  - Name: Simplyfi
+    Domain: simplyfi.com
+    EnableNodeOUs: true
+    Specs:
+      - Hostname: peer1.simplyfi.com
+        CommonName: peer1.simplyfi.com
+    Users:
+      Count: 1
+
+  # Peer configuration for Budget
+  - Name: Budget
+    Domain: budget.com
+    EnableNodeOUs: true
+    Specs:
+      - Hostname: peer1.budget.com
+        CommonName: peer1.budget.com
+    Users:
+      Count: 1
+
+  # Peer configuration for Hr
+  - Name: Hr
+    Domain: hr.com
+    EnableNodeOUs: true
+    Specs:
+      - Hostname: peer1.hr.com
+        CommonName: peer1.hr.com
+    Users:
+      Count: 1
+
